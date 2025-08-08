@@ -23,4 +23,4 @@ def submit_query_endpoint(request: SubmitQueryRequest) -> QueryResponse:
 if __name__ == "__main__":
     port = 3000
     print(f"Running FastAPI on port {port}...")
-    uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port)

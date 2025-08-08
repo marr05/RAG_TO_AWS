@@ -1,17 +1,14 @@
 import argparse
 import os
 import shutil
-from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from src.rag_app.get_embeddings import get_embedding_function
 from langchain.schema.document import Document
 
-load_dotenv()
-
-CHROMA_PATH = os.getenv("CHROMA_PATH")
-DATA_PATH = os.getenv("DATA_PATH")
+CHROMA_PATH = "src/data/chroma_db"
+DATA_PATH = "src/data"
 
 def load_data(data_path):
     """Load data from the specified path."""

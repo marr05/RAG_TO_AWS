@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List
 import os
-from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
 from langchain_aws import ChatBedrock
 from rag_app.get_chroma_db import get_chroma_db_function as get_chroma_db
@@ -29,10 +28,8 @@ Question: {question}
 
 Detailed Answer:"""
 
-load_dotenv()
 
-
-BEDROCK_MODEL_ID = os.getenv("LLAMA_TEXT_MODEL_ID", "meta.llama3-3-70b-instruct-v1:0")
+BEDROCK_MODEL_ID = "meta.llama3-3-70b-instruct-v1:0"
 
 @dataclass
 class QueryResponse:
@@ -49,7 +46,7 @@ def query_rag(query_text: str) -> QueryResponse:
     prompt_template = PromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query_text)
 
-    model = ChatBedrock(model=BEDROCK_MODEL_ID)
+    model = ChatBedrock(model=BEDROCK_MODEL_ID, region_name="us-east-2")
     response = model.invoke(prompt)
     response_text = response.content
     
