@@ -1,26 +1,27 @@
 import uvicorn
-from mangum import Mangum
 from fastapi import FastAPI
+from mangum import Mangum
 from pydantic import BaseModel
+#from query_model import QueryModel
 from rag_app.query_data import QueryResponse, query_rag
 
 app = FastAPI()
-handler = Mangum(app)
+handler = Mangum(app)  # Entry point for AWS Lambda.
 
 class SubmitQueryRequest(BaseModel):
     query_text: str
 
 @app.get("/")
 def index():
-    return {"message": "Welcome to the RAG-TO-AWS API!"}
+    return {"Hello": "World"}
 
 @app.post("/submit_query")
 def submit_query_endpoint(request: SubmitQueryRequest) -> QueryResponse:
-    response = query_rag(request.query_text)
-    return response
-
+    query_response = query_rag(request.query_text)
+    return query_response
 
 if __name__ == "__main__":
+    # Run this as a server directly.
     port = 3000
-    print(f"Running FastAPI on port {port}...")
+    print(f"Running the FastAPI server on port {port}.")
     uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port)
