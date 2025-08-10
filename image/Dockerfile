@@ -22,6 +22,8 @@ ENV IS_USING_IMAGE_RUNTIME=TRUE
 # Then we copy all the files that are in ./src
 COPY src/app_api_handler.py ${LAMBDA_TASK_ROOT}
 
+COPY src/query_model.py ${LAMBDA_TASK_ROOT}
+
 COPY src/rag_app ${LAMBDA_TASK_ROOT}/rag_app
 
 COPY src/data ${LAMBDA_TASK_ROOT}/data

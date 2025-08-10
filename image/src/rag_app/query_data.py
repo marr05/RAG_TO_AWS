@@ -4,6 +4,10 @@ import os
 from langchain.prompts import PromptTemplate
 from langchain_aws import ChatBedrock
 from rag_app.get_chroma_db import get_chroma_db_function as get_chroma_db
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 PROMPT_TEMPLATE = """
@@ -52,7 +56,7 @@ def query_rag(query_text: str) -> QueryResponse:
     
     sources = [doc.metadata.get("id", None) for doc, _score in results]
     formatted_response = f"Response: {response_text}\n\nSources: {', '.join(sources)}"
-    print(formatted_response)
+    logger.info(f"Query: {query_text}\nResponse: {formatted_response}")
     
     return QueryResponse(
         query_text=query_text, 

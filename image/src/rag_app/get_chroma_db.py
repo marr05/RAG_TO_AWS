@@ -4,6 +4,10 @@ from rag_app.get_embeddings import get_embedding_function
 import os
 import sys
 import shutil
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 CHROMA_PATH = os.path.join(os.getcwd(), "data/chroma_db")
@@ -26,7 +30,7 @@ def get_chroma_db_function():
             persist_directory=get_runtime_chroma_path(),
             embedding_function=get_embedding_function()
         )
-        print(f"Chroma DB instance {CHROMA_DB_INSTANCE} initialized at {get_runtime_chroma_path()}")
+        logger.info(f"Chroma DB instance {CHROMA_DB_INSTANCE} initialized at {get_runtime_chroma_path()}")
     
     return CHROMA_DB_INSTANCE
 
@@ -42,12 +46,12 @@ def copy_chroma_to_tmp():
         
     tmp_contents = os.listdir(dst_chroma_path)
     if len(tmp_contents) == 0:
-        print(f"Copying Chroma DB from {CHROMA_PATH} to {dst_chroma_path}")
+        logger.info(f"Copying Chroma DB from {CHROMA_PATH} to {dst_chroma_path}")
         os.makedirs(dst_chroma_path, exist_ok=True)
         shutil.copytree(CHROMA_PATH, dst_chroma_path, dirs_exist_ok=True)
         
     else:
-        print(f"Chroma DB already exists at {dst_chroma_path}, skipping copy.")
+        logger.info(f"Chroma DB already exists at {dst_chroma_path}, skipping copy.")
         
         
 #We add a fxn to get the where the chroma db is running in during runtime, locally or in AWS.
