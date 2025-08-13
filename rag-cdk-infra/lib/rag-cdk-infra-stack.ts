@@ -13,7 +13,6 @@ import {
 import { ManagedPolicy } from "aws-cdk-lib/aws-iam";
 
 export class RagCdkInfraStack extends cdk.Stack {
-  
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -21,6 +20,32 @@ export class RagCdkInfraStack extends cdk.Stack {
     const ragQueryTable = new Table(this, "RagQueryTable", {
       partitionKey: { name: "query_id", type: AttributeType.STRING},
       billingMode: BillingMode.PAY_PER_REQUEST,
+      timeToLiveAttribute: "ttl",
+    });
+
+    // Adding a secondary index, to query by user_id and create_time
+    ragQueryTable.addGlobalSecondaryIndex({
+      indexName: "queries_by_user_id",
+      partitionKey: { name: "user_id", type: AttributeType.STRING },
+      sortKey: { name: "create_time", type: AttributeType.NUMBER},
+    })
+
+    // Lambda function (image) to handle worker logic
+    const workerImageCode = DockerImageCode.fromImageAsset("../image", {
+      cmd: ["app_work_handler.handler"],
+      buildArgs: {
+        platform: "linux/amd64", // needs x86_64 arch for pysqlite3-binary
+      },
+    });
+
+    const workerFunction = new DockerImageFunction(this, "RagWorkerFunction", {
+      code: workerImageCode,
+      memorySize: 512, // Increase this is more memory is needed
+      timeout: cdk.Duration.seconds(60), // increase for more time 
+      architecture: Architecture.X86_64,
+      environment: {
+        TABLE_NAME: ragQueryTable.tableName,
+      },
     });
 
     // Function to handle the API requests. Uses same base image, but different handler.
@@ -38,6 +63,7 @@ export class RagCdkInfraStack extends cdk.Stack {
       architecture: Architecture.X86_64,
       environment: {
         TABLE_NAME: ragQueryTable.tableName,
+        WORKER_LAMBDA_NAME: workerFunction.functionName,
       },
     });
 
@@ -47,8 +73,10 @@ export class RagCdkInfraStack extends cdk.Stack {
     });
 
     // Grant permissions for all resources to work together.
+    ragQueryTable.grantReadWriteData(workerFunction);
     ragQueryTable.grantReadWriteData(apiFunction);
-    apiFunction.role?.addManagedPolicy(
+    workerFunction.grantInvoke(apiFunction);
+    workerFunction.role?.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
     );
 
